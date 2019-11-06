@@ -26,7 +26,7 @@ iris_with_missing %>%
 # Problem 2: Longitudinal Study
 
 ```{r}
-list.files(path = ".data/")
+list.files(path = "./data/")
 ```
 
 
