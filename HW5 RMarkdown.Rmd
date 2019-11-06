@@ -25,6 +25,9 @@ iris_with_missing %>%
 
 # Problem 2: Longitudinal Study
 
+```{r}
+list.files(path = ".data/")
+```
 
 
 # Problem 3: Regression
@@ -58,7 +61,7 @@ for (i in 1:10000) {
 sim_results = bind_rows(output)
 
 sim_results = 
-  rerun(10000, sim_regression(#?#, #?#, #?#)) %>%
+  rerun(10000, sim_regression(n, 2, 0)) %>%
     bind_rows()
 ```
 
