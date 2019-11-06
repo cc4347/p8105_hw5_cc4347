@@ -52,7 +52,7 @@ sim_regression = function(n, beta0 = 2, beta1 = 0) {
 output = vector("list", 10000)
 
 for (i in 1:10000) {
-  output[[i]] = sim_regression(#?#)
+  output[[i]] = sim_regression(n)
 }
 
 sim_results = bind_rows(output)
