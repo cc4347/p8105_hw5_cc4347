@@ -28,3 +28,81 @@ iris_with_missing %>%
 
 
 # Problem 3: Regression
+
+Running a model when beta1 = 0
+```{r}
+# Set design elements:
+n = 30
+sim_regression = function(n, beta0 = 2, beta1 = 0) {
+  sim_data = tibble(
+    x = rnorm(n, mean = 0, sd = 7.07),
+    y = beta0 + beta1 * x + rnorm(n, 0, 1)
+  )
+  
+  ls_fit = lm(y ~ x, data = sim_data) %>%
+    broom::tidy()
+  
+  tibble(
+    beta0_hat = coef(ls_fit)[1],
+    beta1_hat = coef(ls_fit)[2]
+  )
+}
+  
+# Run model (10,000)
+output = vector("list", 10000)
+
+for (i in 1:10000) {
+  output[[i]] = sim_regression(#?#)
+}
+
+sim_results = bind_rows(output)
+
+sim_results = 
+  rerun(10000, sim_regression(#?#, #?#, #?#)) %>%
+    bind_rows()
+```
+
+## Repeating regression
+
+When beta1 = 1
+```{r}
+# running model
+
+#visualization
+```
+
+When beta1 = 2
+```{r}
+# running model
+
+#visualization
+```
+
+When beta1 = 3
+```{r}
+# running model
+
+#visualization
+```
+
+When beta1 = 4
+```{r}
+# running model
+
+#visualization
+```
+
+When beta1 = 5
+```{r}
+# running model
+
+#visualization
+```
+
+When beta1 = 6
+```{r}
+# running model
+
+#visualization
+```
+
