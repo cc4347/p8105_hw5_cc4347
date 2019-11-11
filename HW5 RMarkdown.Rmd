@@ -18,9 +18,53 @@ iris_with_missing = iris %>%
 
 For numeric variables (Sepal.Length, Sepal.Width, Petal.Length, and Petal.Width), fill in missing values with the mean of non-missing values. For the character variable (Species) replace the missing values with "virginica". Use a map statement.
 ```{r}
-iris_with_missing %>%
-  janitor::clean_names() %>%
-  
+#im = 
+#iris_with_missing %>%
+#  janitor::clean_names()
+
+#l = list(im$sepal_length,
+#        im$sepal_width,
+#        im$petal_length,
+#        im$petal_width,
+#        im$species)
+
+#l[[2]]
+
+
+#meanf = function(x) {
+#  if (!is.numeric(x)) {
+#    stop("Argument x should be numeric")
+#  } else if (length(x) == 1) {
+#    stop("Cannot be computed for length 1 vectors")
+#  }
+
+#mean_x = mean(x)
+
+#tibble(
+#  sepal_length = mean(sepal_length),
+#  sepal_width = mean(sepal_width),
+#  petal_length = mean(petal_length),
+#  petal_width = mean(petal_width),
+#  species
+#  )
+#}
+
+#meanf(iris_with_missing[[l]])
+
+#output = map(iris_with_missing, mean)
+```
+
+Filling in missing values with other method. Using summary(im) showed that the mean values for the numeric values were as follows: sepal_length = 5.819, sepal_width = 3.075, petal_length = 3.765, and petal_width = 1.192.
+```{r}
+summary(im)
+
+im$sepal_length <- replace_na(im$sepal_length, 5.819)
+im$sepal_width <- replace_na(im$sepal_width, 3.075)
+im$petal_length <- replace_na(im$petal_length, 3.765)
+im$petal_width <- replace_na(im$petal_width, 1.192)
+im$species <- replace_na(im$species, "virginica")
+
+tibble(im)
 ```
 
 # Problem 2: Longitudinal Study
@@ -35,33 +79,33 @@ list.files(path = "./data/")
 Running a model when beta1 = 0
 ```{r}
 # Set design elements:
-n = 30
+
 sim_regression = function(n, beta0 = 2, beta1 = 0) {
   sim_data = tibble(
-    x = rnorm(n, mean = 0, sd = 7.07),
-    y = beta0 + beta1 * x + rnorm(n, 0, 1)
+    x = rnorm(30, mean = 0, sd = 7.07),
+    y = beta0 + beta1 * x + rnorm(30, 0, 1)
   )
   
   ls_fit = lm(y ~ x, data = sim_data) %>%
-    broom::tidy()
+    broom::tidy() %>%
+    knitr::kable(digits = 3)
   
-  tibble(
-    beta0_hat = coef(ls_fit)[1],
+
+    beta0_hat = coef(ls_fit)[1]
     beta1_hat = coef(ls_fit)[2]
-  )
 }
   
 # Run model (10,000)
 output = vector("list", 10000)
 
 for (i in 1:10000) {
-  output[[i]] = sim_regression(n)
+  output[[i]] = sim_regression(30)
 }
 
 sim_results = bind_rows(output)
 
 sim_results = 
-  rerun(10000, sim_regression(n, 2, 0)) %>%
+  rerun(10000, sim_regression(30, 2, 0)) %>%
     bind_rows()
 ```
 
