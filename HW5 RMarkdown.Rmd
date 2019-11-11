@@ -92,10 +92,7 @@ beta1_list = list("beta1_0 = 0",
                   "beta1_4" = 4,
                   "beta1_5" = 5,
                   "beta1_6" = 6)
-```
 
-
-```{r}
 set.seed(1)
 
 sim_results = rerun(10000, sim_regression(beta1 = 0)) %>%
@@ -105,12 +102,11 @@ sim_results
 ```
 
 ```{r}
-results_10krun =
+results_10k =
   tibble(b1 = c(0, 1, 2, 3, 4, 5, 6)) %>%
   mutate(
     output_lists = map(.x = beta1_list, ~rerun(10000, sim_regression(beta1 = .x))),
-    output_df = map(output_lists, bind_rows)
-  ) %>%
+    output_df = map(output_lists, bind_rows)) %>%
   select(-output_lists) %>%
   unnest(output_df)
 ```
@@ -118,7 +114,7 @@ results_10krun =
 
 Plotting proportion of times the null was rejected (i.e. power) on y-axis and true value of Beta1 on x axis. Describe the association between effect size and power.
 ```{r}
-results_10krun %>%
+results_10k %>%
   mutate(reject = ifelse(p_value < 0.05, "yes", "no"), reject = as.factor(reject)) %>%
   group_by(b1, reject) %>%
   count(reject) %>%
@@ -133,7 +129,7 @@ results_10krun %>%
 Plot average estimates of Beta1hat on y-axis and true values of Beta1 on x-axis. On separate plot, show average estimate of Beta1hat in samples for which the null was rejected on the y-axis and the true value of Beta1 on the x axis. 
 ```{r}
 graph_1 = 
-  results_10Krun %>%
+  results_10k %>%
   mutate(reject = ifelse(p_value < 0.05, "yes", "no"),
          reject = as.factor(reject)) %>%
   group_by(b1) %>%
@@ -144,7 +140,7 @@ graph_1 =
        y = "Beta1 Mean Estimate")
 
 graph_2 =
-  results_10Krun %>%
+  results_10k %>%
   mutate(reject = ifelse(p_value < 0.05, "yes", "no"),
          reject = as.factor(reject)) %>%
   group_by(b1) %>%
