@@ -141,10 +141,14 @@ list.files(path = "./data/")
 
 # Problem 3: Regression
 
-``` r
-set.seed(1)
+Running a model when beta1 = 0
 
-sim_regression = function(n, beta0 = 2, beta1 = 3) {
+``` r
+# Set design elements:
+set.seed(1)
+n=30
+
+sim_regression = function(n, beta0 = 2, beta1 = 0) {
   
   sim_data = tibble(
     x = rnorm(n, mean = 1, sd = 1),
@@ -153,22 +157,24 @@ sim_regression = function(n, beta0 = 2, beta1 = 3) {
   
   ls_fit = lm(y ~ x, data = sim_data)
   
+  broom::tidy(ls_fit)
+  
   tibble(
     beta0_hat = coef(ls_fit)[1],
     beta1_hat = coef(ls_fit)[2]
   )
 }
 
-output = vector("list", 100)
+output = vector("list", 10000)
 
-for (i in 1:100) {
+for (i in 1:10000) {
   output[[i]] = sim_regression(30)
 }
 
 sim_results = bind_rows(output)
 
 sim_results = 
-  rerun(100, sim_regression(30, 2, 3)) %>% 
+  rerun(10000, sim_regression(30, 2, 7.07)) %>% 
   bind_rows()
 
 sim_results %>% 
@@ -192,425 +198,7 @@ sim_results %>%
 
 | parameter  | emp\_mean | emp\_var |
 | :--------- | --------: | -------: |
-| beta0\_hat |     1.995 |    0.081 |
-| beta1\_hat |     3.021 |    0.056 |
-
-Running a model when beta1 = 0
-
-``` r
-# Set design elements:
-set.seed(1)
-n=30
-
-sim_regression = function(n, beta0 = 2, beta1 = 0) {
-  
-  sim_data = tibble(
-    x = rnorm(n, mean = 1, sd = 1),
-    y = beta0 + beta1 * x + rnorm(n, 0, 1)
-  )
-  
-  ls_fit = lm(y ~ x, data = sim_data)
-  
-  tibble(
-    beta0_hat = coef(ls_fit)[1],
-    beta1_hat = coef(ls_fit)[2]
-  )
-}
-
-output = vector("list", 10000)
-
-for (i in 1:10000) {
-  output[[i]] = sim_regression(30)
-}
-
-sim_results = bind_rows(output)
-
-sim_results = 
-  rerun(10000, sim_regression(30, 2, 7.07)) %>% 
-  bind_rows()
-
-sim_results %>% 
-  ggplot(aes(x = beta0_hat, y = beta1_hat)) + 
-  geom_point()
-```
-
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
-
-``` r
-sim_results %>% 
-  pivot_longer(
-    beta0_hat:beta1_hat,
-    names_to = "parameter", 
-    values_to = "estimate") %>% 
-  group_by(parameter) %>% 
-  summarize(emp_mean = mean(estimate),
-            emp_var = var(estimate)) %>% 
-  knitr::kable(digits = 3)
-```
-
-| parameter  | emp\_mean | emp\_var |
-| :--------- | --------: | -------: |
 | beta0\_hat |     2.004 |    0.072 |
 | beta1\_hat |     7.069 |    0.037 |
 
 ## Repeating regression
-
-When beta1 = 1
-
-``` r
-# running model
-set.seed(1)
-n=30
-
-sim_regression = function(n, beta0 = 2, beta1 = 1) {
-  
-  sim_data = tibble(
-    x = rnorm(n, mean = 1, sd = 1),
-    y = beta0 + beta1 * x + rnorm(n, 0, 1)
-  )
-  
-  ls_fit = lm(y ~ x, data = sim_data)
-  
-  broom::tidy(ls_fit)
-  
-  tibble(
-    beta0_hat = coef(ls_fit)[1],
-    beta1_hat = coef(ls_fit)[2]
-  )
-}
-
-output = vector("list", 10000)
-
-for (i in 1:10000) {
-  output[[i]] = sim_regression(30)
-}
-
-sim_results = bind_rows(output)
-
-sim_results = 
-  rerun(10000, sim_regression(30, 2, 7.07)) %>% 
-  bind_rows()
-
-sim_results %>% 
-  ggplot(aes(x = beta0_hat, y = beta1_hat)) + 
-  geom_point()
-```
-
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
-
-``` r
-sim_results %>% 
-  pivot_longer(
-    beta0_hat:beta1_hat,
-    names_to = "parameter", 
-    values_to = "estimate") %>% 
-  group_by(parameter) %>% 
-  summarize(emp_mean = mean(estimate),
-            emp_var = var(estimate)) %>% 
-  knitr::kable(digits = 3)
-```
-
-| parameter  | emp\_mean | emp\_var |
-| :--------- | --------: | -------: |
-| beta0\_hat |     2.004 |    0.072 |
-| beta1\_hat |     7.069 |    0.037 |
-
-When beta1 = 2
-
-``` r
-# running model
-set.seed(1)
-n=30
-
-sim_regression = function(n, beta0 = 2, beta1 = 2) {
-  
-  sim_data = tibble(
-    x = rnorm(n, mean = 1, sd = 1),
-    y = beta0 + beta1 * x + rnorm(n, 0, 1)
-  )
-  
-  ls_fit = lm(y ~ x, data = sim_data)
-  
-  broom::tidy(ls_fit)
-  
-  tibble(
-    beta0_hat = coef(ls_fit)[1],
-    beta1_hat = coef(ls_fit)[2]
-  )
-}
-
-output = vector("list", 10000)
-
-for (i in 1:10000) {
-  output[[i]] = sim_regression(30)
-}
-
-sim_results = bind_rows(output)
-
-sim_results = 
-  rerun(10000, sim_regression(30, 2, 7.07)) %>% 
-  bind_rows()
-
-sim_results %>% 
-  ggplot(aes(x = beta0_hat, y = beta1_hat)) + 
-  geom_point()
-```
-
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
-
-``` r
-sim_results %>% 
-  pivot_longer(
-    beta0_hat:beta1_hat,
-    names_to = "parameter", 
-    values_to = "estimate") %>% 
-  group_by(parameter) %>% 
-  summarize(emp_mean = mean(estimate),
-            emp_var = var(estimate)) %>% 
-  knitr::kable(digits = 3)
-```
-
-| parameter  | emp\_mean | emp\_var |
-| :--------- | --------: | -------: |
-| beta0\_hat |     2.004 |    0.072 |
-| beta1\_hat |     7.069 |    0.037 |
-
-When beta1 = 3
-
-``` r
-# running model
-set.seed(1)
-n=30
-
-sim_regression = function(n, beta0 = 2, beta1 = 3) {
-  
-  sim_data = tibble(
-    x = rnorm(n, mean = 1, sd = 1),
-    y = beta0 + beta1 * x + rnorm(n, 0, 1)
-  )
-  
-  ls_fit = lm(y ~ x, data = sim_data)
-  
-  broom::tidy(ls_fit)
-  
-  tibble(
-    beta0_hat = coef(ls_fit)[1],
-    beta1_hat = coef(ls_fit)[2]
-  )
-}
-
-output = vector("list", 10000)
-
-for (i in 1:10000) {
-  output[[i]] = sim_regression(30)
-}
-
-sim_results = bind_rows(output)
-
-sim_results = 
-  rerun(10000, sim_regression(30, 2, 7.07)) %>% 
-  bind_rows()
-
-sim_results %>% 
-  ggplot(aes(x = beta0_hat, y = beta1_hat)) + 
-  geom_point()
-```
-
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
-
-``` r
-sim_results %>% 
-  pivot_longer(
-    beta0_hat:beta1_hat,
-    names_to = "parameter", 
-    values_to = "estimate") %>% 
-  group_by(parameter) %>% 
-  summarize(emp_mean = mean(estimate),
-            emp_var = var(estimate)) %>% 
-  knitr::kable(digits = 3)
-```
-
-| parameter  | emp\_mean | emp\_var |
-| :--------- | --------: | -------: |
-| beta0\_hat |     2.004 |    0.072 |
-| beta1\_hat |     7.069 |    0.037 |
-
-When beta1 = 4
-
-``` r
-# running model
-set.seed(1)
-n=30
-
-sim_regression = function(n, beta0 = 2, beta1 = 4) {
-  
-  sim_data = tibble(
-    x = rnorm(n, mean = 1, sd = 1),
-    y = beta0 + beta1 * x + rnorm(n, 0, 1)
-  )
-  
-  ls_fit = lm(y ~ x, data = sim_data)
-  
-  broom::tidy(ls_fit)
-  
-  tibble(
-    beta0_hat = coef(ls_fit)[1],
-    beta1_hat = coef(ls_fit)[2]
-  )
-}
-
-output = vector("list", 10000)
-
-for (i in 1:10000) {
-  output[[i]] = sim_regression(30)
-}
-
-sim_results = bind_rows(output)
-
-sim_results = 
-  rerun(10000, sim_regression(30, 2, 7.07)) %>% 
-  bind_rows()
-
-sim_results %>% 
-  ggplot(aes(x = beta0_hat, y = beta1_hat)) + 
-  geom_point()
-```
-
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
-
-``` r
-sim_results %>% 
-  pivot_longer(
-    beta0_hat:beta1_hat,
-    names_to = "parameter", 
-    values_to = "estimate") %>% 
-  group_by(parameter) %>% 
-  summarize(emp_mean = mean(estimate),
-            emp_var = var(estimate)) %>% 
-  knitr::kable(digits = 3)
-```
-
-| parameter  | emp\_mean | emp\_var |
-| :--------- | --------: | -------: |
-| beta0\_hat |     2.004 |    0.072 |
-| beta1\_hat |     7.069 |    0.037 |
-
-When beta1 = 5
-
-``` r
-# running model
-set.seed(1)
-n=30
-
-sim_regression = function(n, beta0 = 2, beta1 = 5) {
-  
-  sim_data = tibble(
-    x = rnorm(n, mean = 1, sd = 1),
-    y = beta0 + beta1 * x + rnorm(n, 0, 1)
-  )
-  
-  ls_fit = lm(y ~ x, data = sim_data)
-  
-  broom::tidy(ls_fit)
-  
-  tibble(
-    beta0_hat = coef(ls_fit)[1],
-    beta1_hat = coef(ls_fit)[2]
-  )
-}
-
-output = vector("list", 10000)
-
-for (i in 1:10000) {
-  output[[i]] = sim_regression(30)
-}
-
-sim_results = bind_rows(output)
-
-sim_results = 
-  rerun(10000, sim_regression(30, 2, 7.07)) %>% 
-  bind_rows()
-
-sim_results %>% 
-  ggplot(aes(x = beta0_hat, y = beta1_hat)) + 
-  geom_point()
-```
-
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
-
-``` r
-sim_results %>% 
-  pivot_longer(
-    beta0_hat:beta1_hat,
-    names_to = "parameter", 
-    values_to = "estimate") %>% 
-  group_by(parameter) %>% 
-  summarize(emp_mean = mean(estimate),
-            emp_var = var(estimate)) %>% 
-  knitr::kable(digits = 3)
-```
-
-| parameter  | emp\_mean | emp\_var |
-| :--------- | --------: | -------: |
-| beta0\_hat |     2.004 |    0.072 |
-| beta1\_hat |     7.069 |    0.037 |
-
-When beta1 = 6
-
-``` r
-# running model
-set.seed(1)
-n=30
-
-sim_regression = function(n, beta0 = 2, beta1 = 6) {
-  
-  sim_data = tibble(
-    x = rnorm(n, mean = 1, sd = 1),
-    y = beta0 + beta1 * x + rnorm(n, 0, 1)
-  )
-  
-  ls_fit = lm(y ~ x, data = sim_data)
-  
-  broom::tidy(ls_fit)
-  
-  tibble(
-    beta0_hat = coef(ls_fit)[1],
-    beta1_hat = coef(ls_fit)[2]
-  )
-}
-
-output = vector("list", 10000)
-
-for (i in 1:10000) {
-  output[[i]] = sim_regression(30)
-}
-
-sim_results = bind_rows(output)
-
-sim_results = 
-  rerun(10000, sim_regression(30, 2, 7.07)) %>% 
-  bind_rows()
-
-sim_results %>% 
-  ggplot(aes(x = beta0_hat, y = beta1_hat)) + 
-  geom_point()
-```
-
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
-
-``` r
-sim_results %>% 
-  pivot_longer(
-    beta0_hat:beta1_hat,
-    names_to = "parameter", 
-    values_to = "estimate") %>% 
-  group_by(parameter) %>% 
-  summarize(emp_mean = mean(estimate),
-            emp_var = var(estimate)) %>% 
-  knitr::kable(digits = 3)
-```
-
-| parameter  | emp\_mean | emp\_var |
-| :--------- | --------: | -------: |
-| beta0\_hat |     2.004 |    0.072 |
-| beta1\_hat |     7.069 |    0.037 |
