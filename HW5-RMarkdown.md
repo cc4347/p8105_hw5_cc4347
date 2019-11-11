@@ -439,7 +439,7 @@ results_10k %>%
   count(reject) %>%
   mutate(freq = (n/100)) %>%
   filter(reject == "yes") %>%
-  ggplot(aes(x = b1, y = freq)) + geom_point() +
+  ggplot(aes(x = b1, y = freq, color = b1)) + geom_point() +
   labs(title = "Association Between Power and Effect Size",
        x = "Beta1 True Value",
        y = "Power")
@@ -464,7 +464,7 @@ graph_1 =
          reject = as.factor(reject)) %>%
   group_by(b1) %>%
   summarise(est_b1_mean = mean(b1_estimate)) %>%
-  ggplot(aes(x = b1, y = est_b1_mean)) + geom_point() +
+  ggplot(aes(x = b1, y = est_b1_mean, color = b1)) + geom_point() +
   labs(title = "Mean Beta1 Estimate Against True Beta1 in All Observations",
        x = "Beta1 True Value",
        y = "Beta1hat Mean Estimate")
@@ -487,7 +487,7 @@ graph_2 =
   group_by(b1) %>%
   filter(reject == "yes") %>%
   summarise(est_b1_mean = mean(b1_estimate)) %>%
-  ggplot(aes(x = b1, y = est_b1_mean)) + geom_point() +
+  ggplot(aes(x = b1, y = est_b1_mean, color = b1)) + geom_point() +
   labs(title = "Mean Beta1 Estimate Against True Beta1 In Rejected Cases",
        x = "Beta1 True Value",
        y = "Beta1hat Mean Estimate")
