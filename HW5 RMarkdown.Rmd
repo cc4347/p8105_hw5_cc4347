@@ -12,6 +12,7 @@ For numeric variables (Sepal.Length, Sepal.Width, Petal.Length, and Petal.Width)
 ## Loading Dataset
 ```{r}
 library(tidyverse)
+library(purrr)
 
 set.seed(10)
 iris_with_missing = iris %>%
@@ -26,36 +27,17 @@ im =
 iris_with_missing %>%
   janitor::clean_names()
 
-#l = list(pull(im, sepal_length),
-#        pull(im, sepal_width),
-#        pull(im, petal_length),
-#        pull(im, petal_width),
-#        pull(im, species))
+output <- vector("list", length = ncol(iris_with_missing))
 
-#l[[2]]
+na_replace <- function(x) {
+  if (is.numeric(x)) {
+    replace_na(x, mean(x, na.rm = TRUE))
+  } else if (is.character(x)) {
+    replace_na(x, "virginica")
+  }
+}
 
-
-#meanf = function(x) {
-#  if (!is.numeric(x)) {
-#    stop("Argument x should be numeric")
-#  } else if (length(x) == 1) {
-#    stop("Cannot be computed for length 1 vectors")
-#  }
-
-#mean_x = mean(x)
-
-#tibble(
-#  sepal_length = mean(sepal_length),
-#  sepal_width = mean(sepal_width),
-#  petal_length = mean(petal_length),
-#  petal_width = mean(petal_width),
-#  species
-#  )
-#}
-
-#meanf(iris_with_missing[[l]])
-
-#output = map(iris_with_missing, mean)
+output = map(iris_with_missing, na_replace)
 ```
 
 ## Different Method
@@ -73,6 +55,7 @@ im$species <- replace_na(im$species, "virginica")
 summary(im)
 ```
 
+
 # Problem 2: Longitudinal Study
 
 ```{r}
@@ -82,55 +65,68 @@ list.files(path = "./data/")
 
 # Problem 3: Regression
 
-Running a model when beta1 = 0
+Running models
 ```{r}
-# Set design elements:
-set.seed(1)
-n=30
+set.seed(10)
 
-sim_regression = function(n, beta0 = 2, beta1 = 0) {
+sim_regression = function(beta1, n = 30, beta0 = 2, sd =50^(.5)) {
   
   sim_data = tibble(
-    x = rnorm(n, mean = 1, sd = 1),
-    y = beta0 + beta1 * x + rnorm(n, 0, 1)
+    x = rnorm(n, mean = 0, sd = 1),
+    y = beta0 + beta1 * x + rnorm(n, mean = 0, 50^(.5))
   )
   
-  ls_fit = lm(y ~ x, data = sim_data)
-  
-  broom::tidy(ls_fit)
+  fit_line = lm(y ~ x, data = sim_data) %>% broom::tidy()
   
   tibble(
-    beta0_hat = coef(ls_fit)[1],
-    beta1_hat = coef(ls_fit)[2]
+    b1_estimate = fit_line[[2,2]],
+    p_value = fit_line[[2,5]]
   )
 }
 
-output = vector("list", 10000)
-
-for (i in 1:10000) {
-  output[[i]] = sim_regression(30)
-}
-
-sim_results = bind_rows(output)
-
-sim_results = 
-  rerun(10000, sim_regression(30, 2, 7.07)) %>% 
-  bind_rows()
-
-sim_results %>% 
-  ggplot(aes(x = beta0_hat, y = beta1_hat)) + 
-  geom_point()
-
-sim_results %>% 
-  pivot_longer(
-    beta0_hat:beta1_hat,
-    names_to = "parameter", 
-    values_to = "estimate") %>% 
-  group_by(parameter) %>% 
-  summarize(emp_mean = mean(estimate),
-            emp_var = var(estimate)) %>% 
-  knitr::kable(digits = 3)
+beta1_list = list("beta1_0 = 0",
+                  "beta1_1" = 1,
+                  "beta1_2" = 2,
+                  "beta1_3" = 3,
+                  "beta1_4" = 4,
+                  "beta1_5" = 5,
+                  "beta1_6" = 6)
 ```
 
-## Repeating regression
 
+```{r}
+set.seed(1)
+
+sim_results = rerun(10000, sim_regression(beta1 = 0)) %>%
+  bind_rows()
+
+sim_results
+```
+
+```{r}
+results_10Krun =
+  tibble(b1 = c(0, 1, 2, 3, 4, 5, 6)) %>%
+  mutate(
+    output_lists = map(.x = beta1_list, ~rerun(10000, sim_regression(beta1 = .x))),
+    output_df = map(output_lists, bind_rows)
+  ) %>%
+  select(-output_lists) %>%
+  unnest(output_df)
+```
+
+
+Plotting proportion of times the null was rejected (i.e. power) on y-axis and true value of Beta1 on x axis. Describe the association between effect size and power.
+```{r}
+results_10Krun %>%
+  mutate(reject = ifelse(p_value < 0.05, "yes", "no"), reject = as.factor(reject)) %>%
+  group_by(b1, reject) %>%
+  count(reject) %>%
+  mutate(freq = (n/100)) %>%
+  filter(reject == "yes") %>%
+  ggplot() +
+  labs(title = "Association Between Power and Effect Size",
+       x = "Beta1 True Value",
+       y = "Power")
+```
+
+Plot average estimates of Beta1hat on y-axis and true values of Beta1 on x-axis. On separate plot, show average estimate of Beta1hat in samples for which the null was rejected on the y-axis and the true value of Beta1 on the x axis. 
