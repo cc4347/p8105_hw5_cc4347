@@ -5,11 +5,12 @@ date: "11/6/2019"
 output: github_document
 ---
 
-# Problem 1: Iris Missing Data
+# Problem 1: Replacing NAs in Iris Missing Data
 
 For numeric variables (Sepal.Length, Sepal.Width, Petal.Length, and Petal.Width), fill in missing values with the mean of non-missing values. For the character variable (Species) replace the missing values with "virginica". Use a map statement.
 
 ## Loading Dataset
+
 ```{r}
 library(tidyverse)
 library(purrr)
@@ -20,7 +21,7 @@ iris_with_missing = iris %>%
   mutate(Species = as.character(Species))
 ```
 
-## Cleaning dataset names and trying map statement
+## Cleaning Dataset & Using Map Statement to Replace NAs
 
 ```{r}
 im = 
@@ -40,23 +41,11 @@ na_replace <- function(x) {
 output = map(iris_with_missing, na_replace)
 ```
 
-## Different Method
+Output shows no existing NA values in the dataset for any variables.
 
-Filling in missing values with a different method. Using summary(im) showed that the mean values for the numeric values were as follows: sepal_length = 5.819, sepal_width = 3.075, petal_length = 3.765, and petal_width = 1.192. Replace individually and recheck summary to ensure NAs no longer present.
-```{r}
-summary(im)
+# Problem 2: Assessing Treatment Arms in a Longitudinal Study
 
-im$sepal_length <- replace_na(im$sepal_length, 5.819)
-im$sepal_width <- replace_na(im$sepal_width, 3.075)
-im$petal_length <- replace_na(im$petal_length, 3.765)
-im$petal_width <- replace_na(im$petal_width, 1.192)
-im$species <- replace_na(im$species, "virginica")
-
-summary(im)
-```
-
-
-# Problem 2: Longitudinal Study
+## Reading in Data Files
 
 ```{r}
 file_names_df = tibble(
@@ -72,6 +61,8 @@ study_data_import =
   mutate(study_data = map(file_names_df[[1]], read_data))
 ```
 
+## Tidy Dataset
+
 ```{r}
 study_data_tidy =
   study_data_import %>%
@@ -86,6 +77,9 @@ study_data_tidy =
 
 study_data_tidy
 ```
+This dataset now differentiates between the Control and Treatment arms, as well as showing Subject ID. Weekly observations are now easily readable.
+
+## Spaghetti Plot: Observations on Each Subject Arm Over Time
 
 ```{r}
 study_data_tidy %>%
@@ -100,10 +94,12 @@ study_data_tidy %>%
   viridis::scale_color_viridis(discrete = TRUE)
 ```
 
+In comparing the two treatment arms (control vs. experimental), participants in the Experimental Arm had an overall greater number of observations over time from week 1 to week 8 (clear increase). In the Control Arm, participant observations increased and decreased over time, but overall there didn't appear to be as much variation between the number of observations during week 1 as compared to week 8 for each indidividual. 
 
-# Problem 3: Regression
+# Problem 3: Linear Regression & Power
 
-Running models
+## Running Simulated Models
+
 ```{r}
 set.seed(10)
 
@@ -131,6 +127,9 @@ sim_results = rerun(10000, sim_regression(beta1 = 0)) %>%
 
 sim_results
 ```
+This table shows beta1 estimates and p-values arising from a test of H: beta1 = 0 (null) with an alpha level of 0.05.
+
+## Creating Table Output for Plots 
 
 ```{r}
 results_10k =
@@ -142,8 +141,9 @@ results_10k =
   unnest(output_df)
 ```
 
+## Plotting Association Between Power and Effect Size
 
-Plotting proportion of times the null was rejected (i.e. power) on y-axis and true value of Beta1 on x axis. Describe the association between effect size and power.
+Plotting proportion of times the null was rejected (i.e. power) on y-axis and true value of beta1 on x-axis. Describe the association between effect size and power.
 ```{r}
 results_10k %>%
   mutate(reject = ifelse(p_value < 0.05, "yes", "no"), reject = as.factor(reject)) %>%
@@ -156,8 +156,11 @@ results_10k %>%
        x = "Beta1 True Value",
        y = "Power")
 ```
+This plot between the true value of beta1 and Power shows a proportional relationaship between these two factors, because as effect size (beta1) increases, so does Power; up to a point. We can see that the increases in power taper off with higher values of effect size, suggesting a threshold effect.
 
-Plot average estimates of Beta1hat on y-axis and true values of Beta1 on x-axis. On separate plot, show average estimate of Beta1hat in samples for which the null was rejected on the y-axis and the true value of Beta1 on the x axis. 
+## Plotting Average Estimates of Beta1_hat
+
+Creating Graph 1: average estimate of beta1hat on y-axis and true values of beta1 on x-axis. 
 ```{r}
 graph_1 = 
   results_10k %>%
@@ -168,8 +171,14 @@ graph_1 =
   ggplot(aes(x = b1, y = est_b1_mean)) + geom_point() +
   labs(title = "Mean Beta1 Estimate Against True Beta1 in All Observations",
        x = "Beta1 True Value",
-       y = "Beta1 Mean Estimate")
+       y = "Beta1hat Mean Estimate")
+graph_1
+```
+This graph shows a directly positive linear relationship between true values of beta1 and mean estimates of beta1.
 
+
+Creating code for Graph 2: average estimate of Beta1hat in samples for which the null was rejected on the y-axis and the true value of Beta1 on the x axis. 
+```{r}
 graph_2 =
   results_10k %>%
   mutate(reject = ifelse(p_value < 0.05, "yes", "no"),
@@ -180,15 +189,7 @@ graph_2 =
   ggplot(aes(x = b1, y = est_b1_mean)) + geom_point() +
   labs(title = "Mean Beta1 Estimate Against True Beta1 In Rejected Cases",
        x = "Beta1 True Value",
-       y = "Beta1 Mean Estimate")
-```
-
-
-```{r}
-graph_1
-```
-
-
-```{r}
+       y = "Beta1hat Mean Estimate")
 graph_2
 ```
+This graph shows true values of beta1 as compared to the mean estimates of beta1hat in cases where the null hypothesis was rejected. The sample average of beta1hat across tests for which the null is rejected begin to approximate the true value of beta1 around when beta1 equals 4, and this approximation improves as beta1 increases to 5 and 6. The plot suggests that increasing effect size in the true value of beta1 relates to an increase in beta1hat mean estimates, which may signify the likelihood of rejecting the null hypothesis is becoming greater.

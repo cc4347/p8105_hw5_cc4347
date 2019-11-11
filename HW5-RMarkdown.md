@@ -3,7 +3,7 @@ HW5
 CC
 11/6/2019
 
-# Problem 1: Iris Missing Data
+# Problem 1: Replacing NAs in Iris Missing Data
 
 For numeric variables (Sepal.Length, Sepal.Width, Petal.Length, and
 Petal.Width), fill in missing values with the mean of non-missing
@@ -37,7 +37,7 @@ iris_with_missing = iris %>%
   mutate(Species = as.character(Species))
 ```
 
-## Cleaning dataset names and trying map statement
+## Cleaning Dataset & Using Map Statement to Replace NAs
 
 ``` r
 im = 
@@ -57,61 +57,11 @@ na_replace <- function(x) {
 output = map(iris_with_missing, na_replace)
 ```
 
-## Different Method
+Output shows no existing NA values in the dataset for any variables.
 
-Filling in missing values with a different method. Using summary(im)
-showed that the mean values for the numeric values were as follows:
-sepal\_length = 5.819, sepal\_width = 3.075, petal\_length = 3.765, and
-petal\_width = 1.192. Replace individually and recheck summary to ensure
-NAs no longer present.
+# Problem 2: Assessing Treatment Arms in a Longitudinal Study
 
-``` r
-summary(im)
-```
-
-    ##   sepal_length    sepal_width     petal_length    petal_width   
-    ##  Min.   :4.300   Min.   :2.000   Min.   :1.000   Min.   :0.100  
-    ##  1st Qu.:5.100   1st Qu.:2.800   1st Qu.:1.600   1st Qu.:0.300  
-    ##  Median :5.700   Median :3.000   Median :4.400   Median :1.300  
-    ##  Mean   :5.819   Mean   :3.075   Mean   :3.765   Mean   :1.192  
-    ##  3rd Qu.:6.400   3rd Qu.:3.400   3rd Qu.:5.100   3rd Qu.:1.800  
-    ##  Max.   :7.900   Max.   :4.400   Max.   :6.900   Max.   :2.500  
-    ##  NA's   :20      NA's   :20      NA's   :20      NA's   :20     
-    ##    species         
-    ##  Length:150        
-    ##  Class :character  
-    ##  Mode  :character  
-    ##                    
-    ##                    
-    ##                    
-    ## 
-
-``` r
-im$sepal_length <- replace_na(im$sepal_length, 5.819)
-im$sepal_width <- replace_na(im$sepal_width, 3.075)
-im$petal_length <- replace_na(im$petal_length, 3.765)
-im$petal_width <- replace_na(im$petal_width, 1.192)
-im$species <- replace_na(im$species, "virginica")
-
-summary(im)
-```
-
-    ##   sepal_length    sepal_width     petal_length    petal_width   
-    ##  Min.   :4.300   Min.   :2.000   Min.   :1.000   Min.   :0.100  
-    ##  1st Qu.:5.125   1st Qu.:2.825   1st Qu.:1.700   1st Qu.:0.400  
-    ##  Median :5.819   Median :3.075   Median :4.000   Median :1.200  
-    ##  Mean   :5.819   Mean   :3.075   Mean   :3.765   Mean   :1.192  
-    ##  3rd Qu.:6.375   3rd Qu.:3.275   3rd Qu.:4.975   3rd Qu.:1.800  
-    ##  Max.   :7.900   Max.   :4.400   Max.   :6.900   Max.   :2.500  
-    ##    species         
-    ##  Length:150        
-    ##  Class :character  
-    ##  Mode  :character  
-    ##                    
-    ##                    
-    ## 
-
-# Problem 2: Longitudinal Study
+## Reading in Data Files
 
 ``` r
 file_names_df = tibble(
@@ -348,6 +298,8 @@ study_data_import =
     ##   week_8 = col_double()
     ## )
 
+## Tidy Dataset
+
 ``` r
 study_data_tidy =
   study_data_import %>%
@@ -383,6 +335,12 @@ study_data_tidy
     ## 10 Control   10         1            2.14
     ## # … with 150 more rows
 
+This dataset now differentiates between the Control and Treatment arms,
+as well as showing Subject ID. Weekly observations are now easily
+readable.
+
+## Spaghetti Plot: Observations on Each Subject Arm Over Time
+
 ``` r
 study_data_tidy %>%
   ggplot(aes(x = week, y = observation, color = subject_id, group = subject_id)) +
@@ -396,11 +354,19 @@ study_data_tidy %>%
   viridis::scale_color_viridis(discrete = TRUE)
 ```
 
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
-# Problem 3: Regression
+In comparing the two treatment arms (control vs. experimental),
+participants in the Experimental Arm had an overall greater number of
+observations over time from week 1 to week 8 (clear increase). In the
+Control Arm, participant observations increased and decreased over time,
+but overall there didn’t appear to be as much variation between the
+number of observations during week 1 as compared to week 8 for each
+indidividual.
 
-Running models
+# Problem 3: Linear Regression & Power
+
+## Running Simulated Models
 
 ``` r
 set.seed(10)
@@ -445,6 +411,11 @@ sim_results
     ## 10       0.685  0.532 
     ## # … with 9,990 more rows
 
+This table shows beta1 estimates and p-values arising from a test of H:
+beta1 = 0 (null) with an alpha level of 0.05.
+
+## Creating Table Output for Plots
+
 ``` r
 results_10k =
   tibble(b1 = c(0, 1, 2, 3, 4, 5, 6)) %>%
@@ -455,8 +426,10 @@ results_10k =
   unnest(output_df)
 ```
 
+## Plotting Association Between Power and Effect Size
+
 Plotting proportion of times the null was rejected (i.e. power) on
-y-axis and true value of Beta1 on x axis. Describe the association
+y-axis and true value of beta1 on x-axis. Describe the association
 between effect size and power.
 
 ``` r
@@ -472,12 +445,17 @@ results_10k %>%
        y = "Power")
 ```
 
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-8-1.png)<!-- --> This
+plot between the true value of beta1 and Power shows a proportional
+relationaship between these two factors, because as effect size (beta1)
+increases, so does Power; up to a point. We can see that the increases
+in power taper off with higher values of effect size, suggesting a
+threshold effect.
 
-Plot average estimates of Beta1hat on y-axis and true values of Beta1 on
-x-axis. On separate plot, show average estimate of Beta1hat in samples
-for which the null was rejected on the y-axis and the true value of
-Beta1 on the x axis.
+## Plotting Average Estimates of Beta1\_hat
+
+Creating Graph 1: average estimate of beta1hat on y-axis and true values
+of beta1 on x-axis.
 
 ``` r
 graph_1 = 
@@ -489,8 +467,19 @@ graph_1 =
   ggplot(aes(x = b1, y = est_b1_mean)) + geom_point() +
   labs(title = "Mean Beta1 Estimate Against True Beta1 in All Observations",
        x = "Beta1 True Value",
-       y = "Beta1 Mean Estimate")
+       y = "Beta1hat Mean Estimate")
+graph_1
+```
 
+![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-9-1.png)<!-- --> This
+graph shows a directly positive linear relationship between true values
+of beta1 and mean estimates of beta1.
+
+Creating code for Graph 2: average estimate of Beta1hat in samples for
+which the null was rejected on the y-axis and the true value of Beta1 on
+the x axis.
+
+``` r
 graph_2 =
   results_10k %>%
   mutate(reject = ifelse(p_value < 0.05, "yes", "no"),
@@ -501,17 +490,16 @@ graph_2 =
   ggplot(aes(x = b1, y = est_b1_mean)) + geom_point() +
   labs(title = "Mean Beta1 Estimate Against True Beta1 In Rejected Cases",
        x = "Beta1 True Value",
-       y = "Beta1 Mean Estimate")
-```
-
-``` r
-graph_1
-```
-
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
-
-``` r
+       y = "Beta1hat Mean Estimate")
 graph_2
 ```
 
-![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](HW5-RMarkdown_files/figure-gfm/unnamed-chunk-10-1.png)<!-- --> This
+graph shows true values of beta1 as compared to the mean estimates of
+beta1hat in cases where the null hypothesis was rejected. The sample
+average of beta1hat across tests for which the null is rejected begin to
+approximate the true value of beta1 around when beta1 equals 4, and this
+approximation improves as beta1 increases to 5 and 6. The plot suggests
+that increasing effect size in the true value of beta1 relates to an
+increase in beta1hat mean estimates, which may signify the likelihood of
+rejecting the null hypothesis is becoming greater.
