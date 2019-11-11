@@ -79,23 +79,24 @@ list.files(path = "./data/")
 Running a model when beta1 = 0
 ```{r}
 # Set design elements:
-
+set.seed(1)
+##################
+n=30
 sim_regression = function(n, beta0 = 2, beta1 = 0) {
+  
   sim_data = tibble(
-    x = rnorm(30, mean = 0, sd = 7.07),
-    y = beta0 + beta1 * x + rnorm(30, 0, 1)
+    x = rnorm(n, mean = 1, sd = 1),
+    y = beta0 + beta1 * x + rnorm(n, 0, 1)
   )
   
-  ls_fit = lm(y ~ x, data = sim_data) %>%
-    broom::tidy() %>%
-    knitr::kable(digits = 3)
+  ls_fit = lm(y ~ x, data = sim_data)
   
-
-    beta0_hat = coef(ls_fit)[1]
+  tibble(
+    beta0_hat = coef(ls_fit)[1],
     beta1_hat = coef(ls_fit)[2]
+  )
 }
-  
-# Run model (10,000)
+
 output = vector("list", 10000)
 
 for (i in 1:10000) {
@@ -105,8 +106,22 @@ for (i in 1:10000) {
 sim_results = bind_rows(output)
 
 sim_results = 
-  rerun(10000, sim_regression(30, 2, 0)) %>%
-    bind_rows()
+  rerun(10000, sim_regression(30, 2, 7.07)) %>% 
+  bind_rows()
+
+sim_results %>% 
+  ggplot(aes(x = beta0_hat, y = beta1_hat)) + 
+  geom_point()
+
+sim_results %>% 
+  pivot_longer(
+    beta0_hat:beta1_hat,
+    names_to = "parameter", 
+    values_to = "estimate") %>% 
+  group_by(parameter) %>% 
+  summarize(emp_mean = mean(estimate),
+            emp_var = var(estimate)) %>% 
+  knitr::kable(digits = 3)
 ```
 
 ## Repeating regression
